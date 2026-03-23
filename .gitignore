@@ -1,0 +1,51 @@
+# Python
+__pycache__/
+*.pyc
+*.pyo# Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# Virtual env
+.env
+.venv/
+venv/
+
+# Runtime data
+uploads/*
+!uploads/.gitkeep
+
+# Data files (PDFs)
+data/
+
+# Local DB/cache artifacts
+.qdrant/
+qdrant_storage/
+redis_data/
+
+# IDE
+.vscode/
+.idea/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Streamlit
+.streamlit/
+
+# Logs
+*.log
+
+# Mac system files
+.AppleDouble
+.LSOverride
+
+# Python build artifacts
+build/
+dist/
+*.egg-info/
+
+# Jupyter (optional safety)
+.ipynb_checkpoints/

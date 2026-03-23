@@ -1,0 +1,12 @@
+[
+  {
+    "question": "What is phishing?",
+    "domain": "security",
+    "expected_keywords": ["phishing", "credentials", "fraud"]
+  },
+  {
+    "question": "What is inflation?",
+    "domain": "finance",
+    "expected_keywords": ["inflation", "prices", "economy"]
+  }
+]
