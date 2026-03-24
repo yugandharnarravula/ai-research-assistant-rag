@@ -1,13 +1,17 @@
 from typing import Dict, List, Optional
-
+from functools import lru_cache
 from qdrant_client import QdrantClient
 from qdrant_client.models import FieldCondition, Filter, MatchValue
 from rank_bm25 import BM25Okapi
-from sentence_transformers import SentenceTransformer
+
 
 from config.settings import settings
 
-MODEL = SentenceTransformer(settings.EMBED_MODEL)
+@lru_cache(maxsize=1)
+def get_model():
+    from sentence_transformers import SentenceTransformer
+    return SentenceTransformer(settings.EMBED_MODEL)
+
 QDRANT = QdrantClient(
     url=settings.QDRANT_URL,
     api_key=settings.QDRANT_API_KEY,

@@ -16,3 +16,4 @@ python-dotenv==1.0.1
 python-multipart==0.0.9
 
 pydantic==2.12.5
+langchain-text-splitters==0.2.2
