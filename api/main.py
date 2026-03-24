@@ -25,8 +25,8 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-UPLOAD_DIR = Path("uploads")
-UPLOAD_DIR.mkdir(exist_ok=True)
+UPLOAD_DIR = Path("/tmp/uploads")
+UPLOAD_DIR.mkdir(parents=True, exist_ok=True)
 
 
 @app.get("/health")
@@ -56,7 +56,11 @@ def query(
     session_id = session_id or str(uuid.uuid4())
     cache_key = f"{session_id}:{domain}:{q}"
 
-    cached = get_cache(cache_key)
+    try:
+        cached = get_cache(cache_key)
+    except Exception as e:
+        print("Cache error:", e)
+        cached = None
     if cached:
         return cached
 
@@ -67,8 +71,12 @@ def query(
     if route == "web":
         docs = web_search(q)
     else:
-        docs = hybrid_search(q, chosen_domain)
-        docs = rerank(q, docs)
+        try:
+            docs = hybrid_search(q, chosen_domain)
+            docs = rerank(q, docs)
+        except Exception as e:
+            print("Search error:", e)
+            docs = []
 
     generated = generate_answer(q, docs, history=history)
     # ONLY VERIFY IF SOURCES EXIST
