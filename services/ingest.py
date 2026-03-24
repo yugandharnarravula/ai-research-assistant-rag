@@ -3,31 +3,31 @@ from pathlib import Path
 from typing import List
 
 import fitz  # PyMuPDF
+from functools import lru_cache
+
 from qdrant_client import QdrantClient
 from qdrant_client.models import Distance, PointStruct, VectorParams, PayloadSchemaType
-from sentence_transformers import SentenceTransformer
-
 
 from config.settings import settings
+from langchain_text_splitters import RecursiveCharacterTextSplitter
 
-# 🔥 Initialize embedding model
-MODEL = SentenceTransformer(settings.EMBED_MODEL)
 
-# 🔥 Qdrant Cloud connection (FINAL)
+# 🔥 Lazy + cached model loading (FIXED)
+@lru_cache(maxsize=1)
+def get_model():
+    from sentence_transformers import SentenceTransformer
+    return SentenceTransformer(settings.EMBED_MODEL)
+
+
+# 🔥 Qdrant Cloud connection
 QDRANT = QdrantClient(
     url=settings.QDRANT_URL,
     api_key=settings.QDRANT_API_KEY,
-    timeout=60.0,  # 🔥 increase timeout
+    timeout=60.0,
 )
 
 
-from qdrant_client.models import VectorParams, Distance, PayloadSchemaType
-
-
 def ensure_collection():
-    collections = QDRANT.get_collections().collections
-    names = [c.name for c in collections]
-
     collections = QDRANT.get_collections().collections
     names = [c.name for c in collections]
 
@@ -36,7 +36,6 @@ def ensure_collection():
     if settings.QDRANT_COLLECTION not in names:
         print("Creating collection...")
 
-        # ✅ Step 1: Create collection
         QDRANT.create_collection(
             collection_name=settings.QDRANT_COLLECTION,
             vectors_config=VectorParams(
@@ -47,7 +46,6 @@ def ensure_collection():
 
         print("Collection created ✅")
 
-        # ✅ Step 2: Create payload index (SAFE)
         try:
             QDRANT.create_payload_index(
                 collection_name=settings.QDRANT_COLLECTION,
@@ -60,7 +58,7 @@ def ensure_collection():
 
 
 # 🧠 Text chunking
-def split_text(text: str, chunk_size: int = 800, chunk_overlap: int = 120) -> List[str]:
+def split_text(text: str) -> List[str]:
     text = text.strip()
     if not text:
         return []
@@ -68,7 +66,7 @@ def split_text(text: str, chunk_size: int = 800, chunk_overlap: int = 120) -> Li
     splitter = RecursiveCharacterTextSplitter(
         chunk_size=500,
         chunk_overlap=100,
-        separators=["\n\n", "\n", ".", " ", ""],  # 🔥 important
+        separators=["\n\n", "\n", ".", " ", ""],
     )
 
     return splitter.split_text(text)
@@ -90,12 +88,15 @@ def ingest_pdf(file_path: str, domain: str = "general") -> dict:
     points = []
     total_chunks = 0
 
+    # 🔥 Load model ONCE (IMPORTANT FIX)
+    model = get_model()
+
     for page_num, page in enumerate(doc):
         text = page.get_text()
         chunks = split_text(text)
 
         for i, chunk in enumerate(chunks):
-            embedding = MODEL.encode(chunk).tolist()
+            embedding = model.encode(chunk).tolist()
 
             point = PointStruct(
                 id=generate_id(file_path.name, page_num, i),
@@ -112,17 +113,19 @@ def ingest_pdf(file_path: str, domain: str = "general") -> dict:
 
             points.append(point)
             total_chunks += 1
+
     if len(points) > 3000:
         print("⚠️ Large file detected, may take time...")
-    # 🚀 Upload to Qdrant
+
+    # 🚀 Upload to Qdrant (batched + retry)
     import time
 
-    BATCH_SIZE = 30  # 🔥 IMPORTANT
+    BATCH_SIZE = 30
 
     for i in range(0, len(points), BATCH_SIZE):
         batch = points[i : i + BATCH_SIZE]
 
-        for attempt in range(3):  # retry logic
+        for attempt in range(3):
             try:
                 QDRANT.upsert(
                     collection_name=settings.QDRANT_COLLECTION,
