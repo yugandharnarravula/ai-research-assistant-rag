@@ -1,9 +1,6 @@
 # Python
 __pycache__/
 *.pyc
-*.pyo# Python
-__pycache__/
-*.pyc
 *.pyo
 *.pyd
 
@@ -31,6 +28,8 @@ redis_data/
 # OS
 .DS_Store
 Thumbs.db
+.AppleDouble
+.LSOverride
 
 # Streamlit
 .streamlit/
@@ -38,14 +37,10 @@ Thumbs.db
 # Logs
 *.log
 
-# Mac system files
-.AppleDouble
-.LSOverride
-
-# Python build artifacts
+# Build artifacts
 build/
 dist/
 *.egg-info/
 
-# Jupyter (optional safety)
+# Jupyter
 .ipynb_checkpoints/
