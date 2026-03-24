@@ -67,12 +67,12 @@ if st.button("Ask") and query:
         result = response.json()
         st.session_state.session_id = result["session_id"]
 
-        st.subheader("Answer")
-        st.write(result["answer"])
+        st.subheader("🧠 Answer")
+        st.markdown(result["answer"])
 
         st.subheader("Sources")
         for s in result["sources"]:
-            st.write(f"- {s}")
+            st.markdown(f"- **{s.get('source', 'Unknown')}** (Page {s.get('page', '-')})")
 
         st.subheader("System Info")
         st.write(f"**Route:** {result['route']}")
