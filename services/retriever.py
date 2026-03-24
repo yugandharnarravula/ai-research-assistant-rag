@@ -21,7 +21,7 @@ QDRANT = QdrantClient(
 def vector_search(
     query: str, domain: Optional[str] = None, limit: Optional[int] = None
 ) -> List[Dict]:
-    vector = MODEL.encode(query).tolist()
+    vector = get_model().encode(query).tolist()
     limit = limit or settings.DEFAULT_K
 
     query_filter = None

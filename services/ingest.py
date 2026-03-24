@@ -31,6 +31,9 @@ def ensure_collection():
     collections = QDRANT.get_collections().collections
     names = [c.name for c in collections]
 
+    collections = QDRANT.get_collections().collections
+    names = [c.name for c in collections]
+
     print("Existing collections:", names)
 
     if settings.QDRANT_COLLECTION not in names:
@@ -58,7 +61,7 @@ def ensure_collection():
 
 
 # 🧠 Text chunking
-def split_text(text: str) -> List[str]:
+def split_text(text: str, chunk_size: int = 800, chunk_overlap: int = 120) -> List[str]:
     text = text.strip()
     if not text:
         return []
@@ -89,14 +92,14 @@ def ingest_pdf(file_path: str, domain: str = "general") -> dict:
     total_chunks = 0
 
     # 🔥 Load model ONCE (IMPORTANT FIX)
-    model = get_model()
+
 
     for page_num, page in enumerate(doc):
         text = page.get_text()
         chunks = split_text(text)
 
         for i, chunk in enumerate(chunks):
-            embedding = model.encode(chunk).tolist()
+            embedding = get_model().encode(chunk).tolist()
 
             point = PointStruct(
                 id=generate_id(file_path.name, page_num, i),
