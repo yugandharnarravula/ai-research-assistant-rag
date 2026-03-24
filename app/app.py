@@ -72,7 +72,7 @@ if st.button("Ask") and query:
 
         st.subheader("Sources")
         for s in result["sources"]:
-            st.markdown(f"- **{s.get('source', 'Unknown')}** (Page {s.get('page', '-')})")
+            st.write(f"- {s}")
 
         st.subheader("System Info")
         st.write(f"**Route:** {result['route']}")
