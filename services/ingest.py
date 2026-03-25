@@ -23,7 +23,7 @@ def get_model():
 QDRANT = QdrantClient(
     url=settings.QDRANT_URL,
     api_key=settings.QDRANT_API_KEY,
-    timeout=60.0,
+    timeout=300.0,
 )
 
 
@@ -99,7 +99,8 @@ def ingest_pdf(file_path: str, domain: str = "general") -> dict:
         chunks = split_text(text)
 
         for i, chunk in enumerate(chunks):
-            embedding = get_model().encode(chunk).tolist()
+            model = get_model()
+            embedding = model.encode(chunk, show_progress_bar=False).tolist()
 
             point = PointStruct(
                 id=generate_id(file_path.name, page_num, i),
@@ -123,11 +124,11 @@ def ingest_pdf(file_path: str, domain: str = "general") -> dict:
     # 🚀 Upload to Qdrant (batched + retry)
     import time
 
-    BATCH_SIZE = 30
+    BATCH_SIZE = 10
 
     for i in range(0, len(points), BATCH_SIZE):
         batch = points[i : i + BATCH_SIZE]
-
+        print(f"🚀 Uploading batch {i} to {i + BATCH_SIZE}")
         for attempt in range(3):
             try:
                 QDRANT.upsert(
