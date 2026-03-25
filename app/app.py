@@ -45,8 +45,9 @@ with st.sidebar:
             f"{backend}/upload",
             files=files,
             data=data,
-            timeout=120,
+            timeout=30,
         )
+        st.success("✅ Upload started. Processing in background. Please wait before querying.")
         if response.ok:
             st.success(response.json())
         else:
