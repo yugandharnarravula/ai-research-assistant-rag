@@ -1,7 +1,7 @@
 import uuid
 from pathlib import Path
 from typing import Optional
-
+import shutil
 from fastapi import FastAPI, File, Form, UploadFile,BackgroundTasks
 from fastapi.middleware.cors import CORSMiddleware
 
@@ -41,13 +41,14 @@ def health() -> dict:
 
 def process_ingest(file_path: str, domain: str):
     try:
-        from services.ingestion import ingest_pdf
-
+        print("🚀 Starting ingestion...")
         result = ingest_pdf(file_path, domain)
         print("✅ Ingestion completed:", result)
 
     except Exception as e:
-        print("❌ Ingestion failed:", e)
+        import traceback
+        print("❌ FULL ERROR:")
+        traceback.print_exc()
 
 @app.post("/upload")
 async def upload_document(
