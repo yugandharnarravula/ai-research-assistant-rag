@@ -14,6 +14,12 @@ from services.retriever import hybrid_search
 from services.router import detect_domain, route_query
 from services.verifier import verify_answer
 from services.web_search import web_search
+from qdrant_client import QdrantClient
+from config.settings import settings
+
+q = QdrantClient(url=settings.QDRANT_URL, api_key=settings.QDRANT_API_KEY)
+print("DEBUG_COLLECTION:", settings.QDRANT_COLLECTION)
+print("DEBUG_COUNT:", q.count(collection_name=settings.QDRANT_COLLECTION, exact=True))
 
 app = FastAPI(title="AI Research Assistant (RAG-Based)")
 
