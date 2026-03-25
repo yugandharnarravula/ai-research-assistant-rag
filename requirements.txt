@@ -5,15 +5,16 @@ uvicorn==0.42.0
 
 qdrant-client==1.9.1
 redis==5.0.8
-
+numpy==1.26.4
 sentence-transformers==3.1.1
 torch==2.2.2+cpu
 rank-bm25==0.2.2
 
 PyMuPDF==1.24.10
-
+scikit-learn==1.4.2
 duckduckgo-search==6.2.10
 requests==2.32.3
+httpx==0.28.1
 
 python-dotenv==1.0.1
 python-multipart==0.0.9
