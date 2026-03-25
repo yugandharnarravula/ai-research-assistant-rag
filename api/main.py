@@ -2,7 +2,7 @@ import uuid
 from pathlib import Path
 from typing import Optional
 
-from fastapi import FastAPI, File, Form, UploadFile
+from fastapi import FastAPI, File, Form, UploadFile,BackgroundTasks
 from fastapi.middleware.cors import CORSMiddleware
 
 from services.cache import get_cache, set_cache
@@ -39,9 +39,19 @@ UPLOAD_DIR.mkdir(parents=True, exist_ok=True)
 def health() -> dict:
     return {"status": "ok"}
 
+def process_ingest(file_path: str, domain: str):
+    try:
+        from services.ingestion import ingest_pdf
+
+        result = ingest_pdf(file_path, domain)
+        print("✅ Ingestion completed:", result)
+
+    except Exception as e:
+        print("❌ Ingestion failed:", e)
 
 @app.post("/upload")
 async def upload_document(
+    background_tasks: BackgroundTasks,
     file: UploadFile = File(...),
     domain: str = Form("general"),
 ) -> dict:
@@ -49,7 +59,7 @@ async def upload_document(
 
     with open(save_path, "wb") as f:
         f.write(await file.read())
-
+    background_tasks.add_task(process_ingest, str(save_path), domain)
     return ingest_pdf(str(save_path), domain)
 
 
