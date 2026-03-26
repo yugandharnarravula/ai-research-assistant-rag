@@ -41,17 +41,32 @@ with st.sidebar:
             )
         }
         data = {"domain": upload_domain}
-        response = requests.post(
-            f"{backend}/upload",
-            files=files,
-            data=data,
-            timeout=30,
-        )
-        st.success("✅ Upload started. Processing in background. Please wait before querying.")
-        if response.ok:
-            st.success(response.json())
-        else:
-            st.error(response.text)
+
+        try:
+            # ✅ STEP 2: Wake up backend
+            with st.spinner("Connecting to backend (first time may take ~40 sec)..."):
+                try:
+                    requests.get(f"{backend}/health", timeout=20)
+                except:
+                    pass
+
+            # ✅ STEP 3: Upload with high timeout
+            with st.spinner("Uploading..."):
+                response = requests.post(
+                    f"{backend}/upload",
+                    files=files,
+                    data=data,
+                    timeout=120,
+                )
+
+            if response.ok:
+                st.success("✅ Upload started. Processing in background.")
+                st.info("⏳ Wait 30–60 sec before querying.")
+            else:
+                st.error(response.text)
+
+        except requests.exceptions.ReadTimeout:
+            st.warning("⚠️ Backend cold start. Click again in 20–30 seconds.")
 
 query = st.text_input("Ask a question")
 

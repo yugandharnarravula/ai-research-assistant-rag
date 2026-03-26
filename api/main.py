@@ -61,7 +61,7 @@ async def upload_document(
     with open(save_path, "wb") as buffer:
         shutil.copyfileobj(file.file, buffer)
     background_tasks.add_task(process_ingest, str(save_path), domain)
-    return ingest_pdf(str(save_path), domain)
+    return {"status": "processing"}
 
 
 @app.get("/query")
