@@ -90,18 +90,20 @@ def ingest_pdf(file_path: str, domain: str = "general") -> dict:
 
     points = []
     total_chunks = 0
-
+    model = get_model()
     # 🔥 Load model ONCE (IMPORTANT FIX)
-
 
     for page_num, page in enumerate(doc):
         text = page.get_text()
         chunks = split_text(text)
 
-        for i, chunk in enumerate(chunks):
-            model = get_model()
-            embedding = model.encode(chunk, show_progress_bar=False).tolist()
+        # 🔥 ADD THIS BLOCK HERE
+        print("Chunks before limit:", len(chunks))
+        chunks = chunks[:50]  # 🔥 LIMIT PER PAGE (VERY IMPORTANT)
+        print("Chunks after limit:", len(chunks))
 
+        for i, chunk in enumerate(chunks):
+            embedding = model.encode(chunk).tolist()
             point = PointStruct(
                 id=generate_id(file_path.name, page_num, i),
                 vector=embedding,
