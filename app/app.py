@@ -14,6 +14,10 @@ if "session_id" not in st.session_state:
     st.session_state.session_id = None
 
 backend = settings.STREAMLIT_BACKEND_URL
+try:
+    requests.get(f"{backend}/health", timeout=10)
+except:
+    pass
 
 with st.sidebar:
     st.header("Knowledge Base")
